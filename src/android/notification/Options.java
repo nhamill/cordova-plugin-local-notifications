@@ -31,8 +31,11 @@ import android.support.v4.app.NotificationCompat;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.Date;
+
+import de.appplant.cordova.plugin.notification.Action;
 
 /**
  * Wrapper around the JSON object passed through JS which contains all
@@ -49,6 +52,9 @@ public class Options {
 
     // Repeat interval
     private long interval = 0;
+
+    // Action buttons
+    private Action[] actions = null;
 
     // Application context
     private final Context context;
@@ -79,6 +85,7 @@ public class Options {
 
         parseInterval();
         parseAssets();
+        parseActions();
 
         return this;
     }
@@ -140,6 +147,42 @@ public class Options {
             options.put("soundUri", soundUri.toString());
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    /*
+     * Parse actions.
+     */
+    private void parseActions() {
+
+        if(options.has("actions") && options.has("category")) {
+            String actionCategoryIdentifier = options.optString("category");
+            Action[] actionsForCategory = Action.getNotificationActionsForCategory(actionCategoryIdentifier);
+
+            if (actionsForCategory == null || actionsForCategory.length == 0) {
+                JSONArray actionsArray = options.optJSONArray("actions"); 
+                actionsForCategory = new Action[actionsArray.length()]; 
+
+                for (int i = 0; i < actionsArray.length(); i++) { 
+                    try {
+                        String actionIdentifier = actionsArray.getJSONObject(i).getString("identifier"); 
+                        Action action = Action.getNotificationAction(actionIdentifier);
+
+                        if (action == null) {
+                            action = new Action(getActionIcon(actionsArray.getJSONObject(i).optString("icon", "")), 
+                                            actionsArray.getJSONObject(i).getString("title"), actionIdentifier);
+                            Action.addNotificationAction(action);
+                        } 
+
+                        actionsForCategory[i] = action;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Action.addNotificationActionCategory(actionCategoryIdentifier, actionsForCategory);
+            } 
+
+            actions = actionsForCategory;
         }
     }
 
@@ -325,6 +368,27 @@ public class Options {
         String icon = options.optString("smallIcon", "");
 
         return assets.getResIdForDrawable(icon);
+	}
+
+    /**
+     * Icon resource ID for given local notification action.
+     *
+     * @param icon
+     *      String pulled from action JSONObject
+     */
+    private int getActionIcon (String icon) {
+
+        int resId = assets.getResIdForDrawable(icon);
+
+        if (resId == 0) {
+            resId = android.R.drawable.screen_background_dark;
+        }
+
+        return resId;
+    }
+
+    public Action[] getActions () {
+        return actions;
     }
 
     /**

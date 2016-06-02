@@ -66,15 +66,18 @@ exports.setDefaults = function (newDefaults) {
  *                          registering or checking for permission
  */
 exports.schedule = function (msgs, callback, scope, args) {
+	var notifications = Array.isArray(msgs) ? msgs : [msgs];
+	var allInteractions = [];
+	for (var i = 0; i < notifications.length; i++) {
+		allInteractions.push(JSON.stringify(this.prepareActions(notification)));
+	}
+
     var fn = function(granted) {
 
         if (!granted) return;
 
-        var notifications = Array.isArray(msgs) ? msgs : [msgs];
-
         for (var i = 0; i < notifications.length; i++) {
             var notification = notifications[i];
-
             this.mergeWithDefaults(notification);
             this.convertProperties(notification);
         }
@@ -85,7 +88,7 @@ exports.schedule = function (msgs, callback, scope, args) {
     if (args && args.skipPermission) {
         fn.call(this, true);
     } else {
-        this.registerPermission(fn, this);
+        this.registerPermission(allInteractions, fn, this);
     }
 };
 
@@ -103,11 +106,15 @@ exports.schedule = function (msgs, callback, scope, args) {
  *                          registering or checking for permission
  */
 exports.update = function (msgs, callback, scope, args) {
+	var notifications = Array.isArray(msgs) ? msgs : [msgs];
+	var allInteractions = [];
+	for (var i = 0; i < notifications.length; i++) {
+		allInteractions.push(JSON.stringify(this.prepareActions(notification)));
+	}
+
     var fn = function(granted) {
 
         if (!granted) return;
-
-        var notifications = Array.isArray(msgs) ? msgs : [msgs];
 
         for (var i = 0; i < notifications.length; i++) {
             var notification = notifications[i];
@@ -121,7 +128,7 @@ exports.update = function (msgs, callback, scope, args) {
     if (args && args.skipPermission) {
         fn.call(this, true);
     } else {
-        this.registerPermission(fn, this);
+        this.registerPermission(allInteractions, fn, this);
     }
 };
 
@@ -430,12 +437,14 @@ exports.hasPermission = function (callback, scope) {
 /**
  * Register permission to show notifications if not already granted.
  *
+ * @param {Object} interactions
+ *      Category and all actions for iOS
  * @param {Function} callback
  *      The function to be exec as the callback
  * @param {Object?} scope
  *      The callback function's scope
  */
-exports.registerPermission = function (callback, scope) {
+exports.registerPermission = function (interactions, callback, scope) {
 
     if (this._registered) {
         return this.hasPermission(callback, scope);
@@ -450,7 +459,7 @@ exports.registerPermission = function (callback, scope) {
         return;
     }
 
-    exec(fn, null, 'LocalNotification', 'registerPermission', []);
+    exec(fn, null, 'LocalNotification', 'registerPermission', interactions);
 };
 
 

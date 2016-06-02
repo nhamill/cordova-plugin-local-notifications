@@ -145,9 +145,12 @@ public class Notification {
     protected boolean isUpdate (boolean keepFlag) {
         boolean updated = options.getDict().optBoolean("updated", false);
 
+
         if (!keepFlag) {
             options.getDict().remove("updated");
         }
+        long now       = new Date().getTime();
+        long updatedAt = options.getDict().optLong("updatedAt", now);
 
         return updated;
     }

@@ -4,6 +4,119 @@
 
 Cordova Local-Notification Plugin
 =================================
+You can scroll below or visit any of the repos linked above to see general usage docs, but here I'll show you how to add interactive notifications to your iOS or Android app.
+
+##How to make your notifications interactive
+
+First, some background. <b>Actions</b> are little buttons the user can slide to see on a notification, and tap to have something done in the background or foreground, depending on how it's configured. On iOS you can add up to four notification actions. When notifications are shown in banner form, only two will be shown, and all four can be shown in the alert form. Of course, you can have less than four or two, or none. My implementation is such that the actions will be shown in the order you've supplied them, so that only the first two will show in banner form (by default, the behavior is a little bit different, but this was the best way I could make the order of the actions predictable). On Android, you can have up to three actions, and the banner vs. alert differences don't apply.
+
+In iOS, notification actions are associated with a <b>category</b>. This category has those actions attached to it, and is part of the notification payload. Both actions and categories are identified by an identifier string (shocking, I know). Android does not associate actions with a category, or even with their own identifier. But to make the action behavior consistent across both platforms, <b>you will still need to use both action identifiers and a category</b> for Android notifications. This also uses less memory on Android.
+
+To add actions to a notification, you add them and a category when you schedule it. The actions will be an array (containing action objects) passed to the 'actions' property, and the category will be a string passed to the 'category' property. You can reuse actions, perhaps if you've defined them outside of your call to schedule a notification, and pick up particular ones from that definition in your call. However, after you've passed an action with a particular identifier, you can't modify it in later notifications. If two action objects have the same identifier, the first one passed will be used, and the next will turn into the first one in the native code. The same applies to categories. That will probably be the biggest 'gotcha' with my implementation, but I think it is perfectly reasonable behavior. So please be aware.
+
+You can allow a user to send a text response through a notification (iOS only, would love to implement this for Android as well when it is available). All you need to do to allow for this is to add a 'behavior' property to your action object with the value 'textInput'. If it's not a reply-inline action, don't include this property, or provide any other value. Additionally, you can modify the text of the 'Send' button, by adding a 'textInputSendTitle' property, which the value of what you'd like the button to say. On Android, for these actions, I recommend handling them the way Gmail handles their 'Reply' notification action (
+
+Each action must include six properties to work properly on both iOS and Android. There are also two, totally optional, properties to set up iOS inline reply actions. All of these properties are listed below.
+
+<ul>
+<li><b>identifier</b>: (iOS & Android) A string containing the identifier of your action (read above to learn more about how this will be used)</li>
+<li><b>title</b>: (iOS & Android) A string that will be shown on the action button itself.</li>
+<li><b>icon</b>: (Android) A string used to locate a resource asset to be shown on the action button itself. Don't include the file extension (but it should be .png). Whatever works for you for the smallIcon property on the notification itself will be what works here, so look into that for reference.
+<li><b>activationMode</b>: (iOS) A string equal to either 'background' or 'foreground'. This property determines whether your app will be brought to the foreground (and opened, if it isn't already) when the action is tapped (for 'foreground', obviously).</li>
+<li><b>destructive</b>: (iOS) A boolean. If true, the action button will be shown with a red background, to signifiy that destructive changes will be made if clicked. It doesn't actually change how anything functions.</li>
+<li><b>authenticationRequired</b>: (iOS) A boolean. If true, the user will be required to enter their passcode before the action is actually performed.</li>
+<li><b>behavior</b>: (iOS, optional) A string that should equal 'textInput' if you would like the reply-inline functionality described above.</li>
+<li><b>textInputSendTitle</b>: (iOS, optional) A string that will appear on the 'Send' button for reply-inline actions (instead of 'Send'). This is optional if your reply specifies the 'textInput' behavior, and totally unnecessary if not. Note: You won't find this property under this name in Apple's documentation; it's set a different way internally.</li>
+</ul>
+
+###Sample
+
+```javascript
+var actions = [ {
+        identifier: 'SIGN_IN',
+        title: 'Yes',
+        icon: 'res://ic_signin',
+        activationMode: 'background',
+        destructive: false,
+        authenticationRequired: true
+    },
+    {
+       identifier: 'MORE_SIGNIN_OPTIONS',
+       title: 'More Options',
+       icon: 'res://ic_moreoptions',
+       activationMode: 'foreground',
+       destructive: false,
+       authenticationRequired: false
+    },
+    {
+       identifier: 'PROVIDE_INPUT',
+       title: 'Provide Input',
+       icon: 'ic_input',
+       activationMode: 'background',
+       destructive: false,
+       authenticationRequired: false,
+       behavior: 'textInput',
+       textInputSendTitle: 'Reply'
+}];
+
+cordova.plugins.notification.local.schedule({
+        id: 1,
+        title: "Production Jour fixe",
+        text: "Duration 1h",
+        at: monday_9_am,
+        actions: [actions[0], actions[1]],
+        category: 'SIGN_IN_TO_CLASS'
+});
+```
+
+Of course, above, you can include all of the normal properties passed when scheduling a notification. Just add actions and category to get interactivity.
+
+##Handling actions
+
+When a user taps a notification action, you obviously want to do something. So, to know which action they've tapped, you just need to capture the 'action' event. This will give you the notification, state, and data. The action identifier (and optional reply-inline response info text) are in the data variable, an object with 'identifier' and (optional) 'responseInfoText' propertie(s). You should know all of the action identifiers (after all, you passed them), and use conditions to determine what you'll for for each actions.
+
+###Sample
+
+```javascript
+cordova.plugins.notification.local.on('action', function (notification, state, data) {
+    var replyMessage;
+
+    if (data.identifier === 'PROVIDE_INPUT') {
+        replyMessage = data.responseInfoText;
+        alert(replyMessage);
+    } else if (data.identifier === 'SIGN_IN') {
+        alert('You have been signed in!');
+    } else if (data.identifier === 'MORE_SIGNIN_OPTIONS') {
+        alert('(Pretend there are more signin options here, please.)');
+    }
+});
+```
+
+Obviously, you can do something more interesting than adding alerts.
+
+In the case that you've shared actions amongst different notifications, but want to perform something else depending on what actual notification it was tapped from, just use the notification variable to access the payload you passed in and determine which it is. You'll need to parse this too.
+
+##For Ionic users
+
+If you use ngCordova, you can add this snippet to the ngCordova.plugins.localNotification module under the event listener:
+
+```javascript
+$window.cordova.plugins.notification.local.on('action', function (notification, state, data) {
+  $timeout(function () {
+    $rootScope.$broadcast('$cordovaLocalNotification:action', notification, state, data);
+  });
+});
+```
+
+Then in your app, you can capture the event like this:
+
+```javascript
+$rootScope.$on('$cordovaLocalNotification:action', function(event, notification, state, data) {
+    // use conditionals to choose actions to take like above, blah blah
+});
+```
+
+## GENERAL USAGE DOCS
 
 The essential purpose of local notifications is to enable an application to inform its users that it has something for them — for example, a message or an upcoming appointment — when the application isn’t running in the foreground.<br>
 They are scheduled by an application and delivered on the same device.
