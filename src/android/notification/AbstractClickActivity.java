@@ -30,6 +30,7 @@ import android.os.Bundle;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 /**
  * Abstract content receiver activity for local notifications. Creates the
@@ -40,6 +41,7 @@ abstract public class AbstractClickActivity extends Activity {
     // Holds identifier of action most recently chosen  
     // Null if notification was simply clicked
     public String actionIdentifier = null;
+    protected JSONObject actionObj = null;
 
     /**
      * Called when local notification was clicked to launch the main intent.
@@ -59,6 +61,13 @@ abstract public class AbstractClickActivity extends Activity {
             String[] data = bundle.getStringArray(Options.EXTRA);
             actionIdentifier = data[1];
             JSONObject options = new JSONObject(data[0]);
+            JSONArray actions = options.getJSONArray("actions");
+            for (int i = 0; i < actions.length(); i++) {
+                if (actions.getJSONObject(i).get("identifier").equals(actionIdentifier)) {
+                    actionObj = actions.getJSONObject(i);
+                    break;
+                }
+            }
 
             Builder builder =
                     new Builder(context, options);
@@ -112,7 +121,14 @@ abstract public class AbstractClickActivity extends Activity {
         intent.addFlags(
                 Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        context.startActivity(intent);
+        try {
+            if (null == actionObj || actionObj.getString("activationMode").equals("foreground")) {
+                context.startActivity(intent);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }
