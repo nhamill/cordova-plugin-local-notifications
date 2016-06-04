@@ -195,10 +195,11 @@ exports.convertProperties = function (options) {
  *      Set of custom values
  *
  * @return {Object}
- *      The prepared interaction object w/ category & actions
+ *      The prepared interaction object w/ category & actions OR null
  */
 exports.prepareActions = function (options) {
     var MAX_ACTIONS;
+    var interaction = null;
 
     if (device.platform === 'iOS') {
         MAX_ACTIONS = 4;
@@ -207,9 +208,9 @@ exports.prepareActions = function (options) {
     }
 
     if (options.category && options.actions) {
-        var interaction = { 
-            category: options.category, 
-            actions: [] 
+        interaction = {
+            category: options.category,
+            actions: []
         };
 
         for (var i = 0; i < options.actions.length && MAX_ACTIONS > 0; i++) {

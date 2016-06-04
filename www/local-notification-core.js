@@ -69,7 +69,11 @@ exports.schedule = function (msgs, callback, scope, args) {
 	var notifications = Array.isArray(msgs) ? msgs : [msgs];
 	var allInteractions = [];
 	for (var i = 0; i < notifications.length; i++) {
-		allInteractions.push(JSON.stringify(this.prepareActions(notification)));
+		var notification = notifications[i];
+		var interaction = this.prepareActions(notification);
+		if (interaction) {
+			allInteractions.push(JSON.stringify(interaction));
+		}
 	}
 
     var fn = function(granted) {
@@ -109,7 +113,11 @@ exports.update = function (msgs, callback, scope, args) {
 	var notifications = Array.isArray(msgs) ? msgs : [msgs];
 	var allInteractions = [];
 	for (var i = 0; i < notifications.length; i++) {
-		allInteractions.push(JSON.stringify(this.prepareActions(notification)));
+		var notification = notifications[i];
+		var interaction = this.prepareActions(notification);
+		if (interaction) {
+			allInteractions.push(JSON.stringify(interaction));
+		}
 	}
 
     var fn = function(granted) {
