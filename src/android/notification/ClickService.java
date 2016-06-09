@@ -24,11 +24,11 @@
 package de.appplant.cordova.plugin.notification;
 
 /**
- * The receiver activity is triggered when a notification is clicked by a user.
- * The activity calls the background callback and brings the launch intent
+ * The receiver service is triggered when a notification is clicked by a user.
+ * The service calls the background callback and brings the launch intent
  * up to foreground.
  */
-public class ClickActivity extends AbstractClickActivity {
+public class ClickService extends AbstractClickService {
 
     /**
      * Called when local notification was clicked by the user. Will

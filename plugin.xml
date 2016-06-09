@@ -99,14 +99,12 @@
                 android:name="de.appplant.cordova.plugin.localnotification.ClearReceiver"
                 android:exported="false" />
 
-            <activity
-                android:name="de.appplant.cordova.plugin.localnotification.ClickActivity"
-                android:launchMode="singleInstance"
-                android:theme="@android:style/Theme.NoDisplay"
+            <service
+                android:name="de.appplant.cordova.plugin.localnotification.ClickService"
                 android:exported="false" />
 
             <receiver
-                android:name="de.appplant.cordova.plugin.notification.TriggerReceiver"
+                android:name="de.appplant.cordova.plugin.localnotification.TriggerReceiver"
                 android:exported="false" />
 
             <receiver
@@ -118,12 +116,6 @@
                     <action android:name="android.intent.action.BOOT_COMPLETED" />
                 </intent-filter>
             </receiver>
-
-            <activity
-                android:name="de.appplant.cordova.plugin.notification.ClickActivity"
-                android:launchMode="singleInstance"
-                android:theme="@android:style/Theme.NoDisplay"
-                android:exported="false" />
 
         </config-file>
 
@@ -141,7 +133,7 @@
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
-            src="src/android/ClickActivity.java"
+            src="src/android/ClickService.java"
             target-dir="src/de/appplant/cordova/plugin/localnotification" />
 
         <source-file
@@ -157,7 +149,7 @@
             target-dir="src/de/appplant/cordova/plugin/notification" />
 
         <source-file
-            src="src/android/notification/AbstractClickActivity.java"
+            src="src/android/notification/AbstractClickService.java"
             target-dir="src/de/appplant/cordova/plugin/notification" />
 
         <source-file
@@ -181,7 +173,7 @@
             target-dir="src/de/appplant/cordova/plugin/notification" />
 
         <source-file
-            src="src/android/notification/ClickActivity.java"
+            src="src/android/notification/ClickService.java"
             target-dir="src/de/appplant/cordova/plugin/notification" />
 
         <source-file

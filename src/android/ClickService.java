@@ -28,11 +28,11 @@ import de.appplant.cordova.plugin.notification.Notification;
 import de.appplant.cordova.plugin.notification.TriggerReceiver;
 
 /**
- * The receiver activity is triggered when a notification is clicked by a user.
- * The activity calls the background callback and brings the launch intent
+ * The receiver service is triggered when a notification is clicked by a user.
+ * The service calls the background callback and brings the launch intent
  * up to foreground.
  */
-public class ClickActivity extends de.appplant.cordova.plugin.notification.ClickActivity {
+public class ClickService extends de.appplant.cordova.plugin.notification.ClickService {
 
     /**
      * Called when local notification was clicked by the user.
@@ -52,14 +52,15 @@ public class ClickActivity extends de.appplant.cordova.plugin.notification.Click
 		if (actionIdentifier != null) {
 			LocalNotification.fireEvent("action", notification, actionIdentifier);
 
-			if (event == "clear") {
-				notification.clear();
-			} else {
-				notification.cancel();
-			}
 
 		} else {
 			LocalNotification.fireEvent("click", notification);
+		}
+
+		if (event == "clear") {
+			notification.clear();
+		} else {
+			notification.cancel();
 		}
 
         LocalNotification.fireEvent(event, notification);

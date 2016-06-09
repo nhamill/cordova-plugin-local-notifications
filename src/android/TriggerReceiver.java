@@ -62,7 +62,7 @@ public class TriggerReceiver extends de.appplant.cordova.plugin.notification.Tri
     public Notification buildNotification (Builder builder) {
         return builder
                 .setTriggerReceiver(TriggerReceiver.class)
-                .setClickActivity(ClickActivity.class)
+                .setClickService(ClickService.class)
                 .setClearReceiver(ClearReceiver.class)
                 .build();
     }

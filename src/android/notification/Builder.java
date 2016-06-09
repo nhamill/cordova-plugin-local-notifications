@@ -55,8 +55,8 @@ public class Builder {
     // Receiver to handle the clear event
     private Class<?> clearReceiver = ClearReceiver.class;
 
-    // Activity to handle the click event
-    private Class<?> clickActivity = ClickActivity.class;
+    // Service to handle the click event
+    private Class<?> clickService = ClickService.class;
 
     /**
      * Constructor
@@ -105,15 +105,16 @@ public class Builder {
     }
 
     /**
-     * Set click activity.
+     * Set click service.
      *
-     * @param activity
-     *      Activity
+     * @param service
+     *      Service
      */
-    public Builder setClickActivity(Class<?> activity) {
-        this.clickActivity = activity;
+    public Builder setClickService(Class<?> service) {
+        this.clickService = service;
         return this;
     }
+
 
     /**
      * Creates the notification with all its options passed through JS.
@@ -186,16 +187,16 @@ public class Builder {
      */
     private void applyContentReceiver(NotificationCompat.Builder builder) {
 
-        if (clickActivity == null)
+        if (clickService == null)
             return;
 
-        Intent intent = new Intent(context, clickActivity)
+        Intent intent = new Intent(context, clickService)
                 .putExtra(Options.EXTRA, new String[]{ options.toString(), null })
                 .setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         int reqCode = new Random().nextInt();
 
-        PendingIntent contentIntent = PendingIntent.getActivity(
+        PendingIntent contentIntent = PendingIntent.getService(
                 context, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Action[] actionsArray = options.getActions();
@@ -216,13 +217,13 @@ public class Builder {
      *      Notification action needing the PendingIntent
      */
     private PendingIntent getPendingIntentForAction(Action action) {
-        Intent intent = new Intent(context, clickActivity)
+        Intent intent = new Intent(context, clickService)
                 .putExtra(Options.EXTRA, new String[]{ options.toString(), action.getIdentifier() })
                 .setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         int requestCode = new Random().nextInt();
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(
+        PendingIntent pendingIntent = PendingIntent.getService(
                 context, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         return pendingIntent;
