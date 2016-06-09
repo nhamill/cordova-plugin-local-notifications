@@ -443,7 +443,7 @@ exports.hasPermission = function (callback, scope) {
 };
 
 /**
- * Register permission to show notifications if not already granted.
+ * Register permission to show notifications.
  *
  * @param {Object} interactions
  *      Category and all actions for iOS
@@ -453,13 +453,6 @@ exports.hasPermission = function (callback, scope) {
  *      The callback function's scope
  */
 exports.registerPermission = function (interactions, callback, scope) {
-
-    if (this._registered) {
-        return this.hasPermission(callback, scope);
-    } else {
-        this._registered = true;
-    }
-
     var fn = this.createCallbackFn(callback, scope);
 
     if (device.platform != 'iOS') {
